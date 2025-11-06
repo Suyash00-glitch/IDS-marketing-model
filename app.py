@@ -1,5 +1,5 @@
 # ==========================================
-# 💻 STREAMLIT APP — Marketing Response Predictor (Minimal Inputs, Fixed)
+# 💻 STREAMLIT APP — Marketing Response Predictor (Final Fixed)
 # ==========================================
 
 import streamlit as st
@@ -35,17 +35,17 @@ with col2:
     income_max = st.number_input("Max Annual Income (₹)", 20000, 150000, 120000, step=5000)
 
 # ==========================================
-# 🔹 Auto-filled fields (assumed averages)
+# 🔹 Auto-filled fields (estimated averages)
 # ==========================================
 ad_intensity_map = {"Low": 25, "Medium": 75, "High": 150}
 ad_intensity = ad_intensity_map[ad_intensity_input]
 product_type = 0 if product_type_input == "Necessity" else 1
 
-# Average constants for hidden attributes
+# Default assumptions
 age = 35
 credit_score = 650
 discount = 15  # %
-ad_calls, ad_sms, ad_social, ad_display = 2, 5, 20, 10
+ad_calls, ad_sms, ad_social, ad_display = 2, 5, 20, 10  # Added back!
 
 # ==========================================
 # 🔹 Derived feature calculations
@@ -61,21 +61,22 @@ income_to_credit = income_avg / credit_score
 discount_intensity = discount * ad_intensity
 price_to_income = price_avg / income_avg
 
-# Feature order exactly matching training data
+# ✅ Exact column list from training
 columns = [
     "Age", "Annual_Income", "Credit_Score", "Product_Type", "Price_Range",
-    "Discount_Offered(%)", "Affordability_Ratio", "Ad_Intensity",
+    "Discount_Offered(%)", "Affordability_Ratio",
+    "Ad_Calls", "Ad_SMS", "Ad_Social", "Ad_Display", "Ad_Intensity",
     "Normalized_Ad_Intensity", "Log_Price", "Log_Income",
     "Discount_to_Afford", "Credit_Afford_Interaction", "Income_to_Credit",
     "Discount_Intensity", "Price_to_Income"
 ]
 
-# Build feature DataFrame
+# ✅ Match training order + full column list
 features = np.array([[age, income_avg, credit_score, product_type, price_avg,
-                      discount, affordability_ratio, ad_intensity,
-                      normalized_ad_intensity, np.log1p(price_avg),
-                      np.log1p(income_avg), discount_to_afford,
-                      credit_afford_interaction, income_to_credit,
+                      discount, affordability_ratio,
+                      ad_calls, ad_sms, ad_social, ad_display, ad_intensity,
+                      normalized_ad_intensity, np.log1p(price_avg), np.log1p(income_avg),
+                      discount_to_afford, credit_afford_interaction, income_to_credit,
                       discount_intensity, price_to_income]])
 
 input_df = pd.DataFrame(features, columns=columns)
@@ -93,8 +94,8 @@ if st.button("🔍 Predict Response"):
         st.metric(label="Predicted Response Probability", value=f"{prob*100:.2f}%")
 
     except Exception as e:
-        st.error("⚠️ Prediction failed — check feature alignment or model file.")
+        st.error("⚠️ Prediction failed — please verify model and feature alignment.")
         st.write(e)
 
 st.caption("---")
-st.caption("Inputs simplified for business use — all other values auto-estimated based on typical campaign data.")
+st.caption("Inputs simplified for business use — hidden parameters auto-filled for realism.")
