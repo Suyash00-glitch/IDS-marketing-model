@@ -1,5 +1,5 @@
 # ==========================================
-# 💻 STREAMLIT APP (Minimal Inputs Version)
+# 💻 STREAMLIT APP — Marketing Response Predictor (Minimal Inputs, Fixed)
 # ==========================================
 
 import streamlit as st
@@ -14,10 +14,10 @@ def load_model():
 
 model = load_model()
 
-# ✅ Page setup
+# ✅ Page Configuration
 st.set_page_config(page_title="Marketing Response Predictor", layout="centered")
 st.title("🎯 Marketing Campaign Response Predictor (Minimal UI)")
-st.markdown("Enter only key parameters — the system will estimate the rest.")
+st.markdown("Enter only key business parameters — the rest will be estimated automatically.")
 
 # ==========================================
 # 🔹 User Inputs
@@ -35,20 +35,21 @@ with col2:
     income_max = st.number_input("Max Annual Income (₹)", 20000, 150000, 120000, step=5000)
 
 # ==========================================
-# 🔹 Auto-fill remaining features
+# 🔹 Auto-filled fields (assumed averages)
 # ==========================================
-# Map categorical inputs
 ad_intensity_map = {"Low": 25, "Medium": 75, "High": 150}
 ad_intensity = ad_intensity_map[ad_intensity_input]
 product_type = 0 if product_type_input == "Necessity" else 1
 
-# Auto-fill averages for non-UI features
+# Average constants for hidden attributes
 age = 35
 credit_score = 650
-discount = 15  # avg discount in %
+discount = 15  # %
 ad_calls, ad_sms, ad_social, ad_display = 2, 5, 20, 10
 
-# Derived variables
+# ==========================================
+# 🔹 Derived feature calculations
+# ==========================================
 price_avg = (price_min + price_max) / 2
 income_avg = (income_min + income_max) / 2
 affordability_ratio = round(price_avg / income_avg, 2)
@@ -60,7 +61,16 @@ income_to_credit = income_avg / credit_score
 discount_intensity = discount * ad_intensity
 price_to_income = price_avg / income_avg
 
-# Feature vector (same order as training)
+# Feature order exactly matching training data
+columns = [
+    "Age", "Annual_Income", "Credit_Score", "Product_Type", "Price_Range",
+    "Discount_Offered(%)", "Affordability_Ratio", "Ad_Intensity",
+    "Normalized_Ad_Intensity", "Log_Price", "Log_Income",
+    "Discount_to_Afford", "Credit_Afford_Interaction", "Income_to_Credit",
+    "Discount_Intensity", "Price_to_Income"
+]
+
+# Build feature DataFrame
 features = np.array([[age, income_avg, credit_score, product_type, price_avg,
                       discount, affordability_ratio, ad_intensity,
                       normalized_ad_intensity, np.log1p(price_avg),
@@ -68,16 +78,23 @@ features = np.array([[age, income_avg, credit_score, product_type, price_avg,
                       credit_afford_interaction, income_to_credit,
                       discount_intensity, price_to_income]])
 
+input_df = pd.DataFrame(features, columns=columns)
+
 # ==========================================
 # 🔹 Prediction
 # ==========================================
 if st.button("🔍 Predict Response"):
-    prob = model.predict_proba(features)[0][1]
-    result = "✅ Likely to Respond" if prob >= 0.5 else "❌ Unlikely to Respond"
+    try:
+        prob = model.predict_proba(input_df)[0][1]
+        result = "✅ Likely to Respond" if prob >= 0.5 else "❌ Unlikely to Respond"
 
-    st.subheader(result)
-    st.progress(int(prob * 100))
-    st.metric(label="Predicted Response Probability", value=f"{prob*100:.2f}%")
+        st.subheader(result)
+        st.progress(int(prob * 100))
+        st.metric(label="Predicted Response Probability", value=f"{prob*100:.2f}%")
+
+    except Exception as e:
+        st.error("⚠️ Prediction failed — check feature alignment or model file.")
+        st.write(e)
 
 st.caption("---")
-st.caption("Inputs simplified for business use — backend auto-calculates realistic defaults for other attributes.")
+st.caption("Inputs simplified for business use — all other values auto-estimated based on typical campaign data.")
