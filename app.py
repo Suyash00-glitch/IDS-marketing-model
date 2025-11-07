@@ -34,7 +34,7 @@ st.markdown(
 # ---------- Load Model ----------
 @st.cache_resource
 def load_model():
-    return joblib.load("xgb_marketing_model_final_colab.pkl")
+    return joblib.load("./xgb_marketing_model_final_colab.pkl")
 
 model = load_model()
 
