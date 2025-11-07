@@ -1,5 +1,5 @@
 # ==========================================
-# 💼 MARKETING CAMPAIGN RESPONSE PREDICTOR
+# 💼 MARKETING CAMPAIGN SUCCESS PREDICTOR
 # ==========================================
 # Inputs:
 #   1. Ad Intensity (Low / Medium / High)
@@ -7,7 +7,8 @@
 #   3. Annual Income (ranges)
 #   4. Product Price (ranges)
 # Output:
-#   - Response Probability
+#   - Campaign Success (Yes/No)
+#   - Yes Percentage
 # ==========================================
 
 import streamlit as st
@@ -16,14 +17,14 @@ import pandas as pd
 import joblib
 
 # ---------- Page Setup ----------
-st.set_page_config(page_title="Marketing Response Predictor", layout="centered")
+st.set_page_config(page_title="Marketing Campaign Success Predictor", layout="centered")
 
 st.markdown(
     """
     <div style="text-align:center;">
-        <h1 style="color:#0077b6; font-size:38px;">📊 Marketing Campaign Response Predictor</h1>
+        <h1 style="color:#0077b6; font-size:38px;">📊 Marketing Campaign Success Predictor</h1>
         <p style="font-size:18px; color:#555;">
-            Estimate the probability of a customer responding to a campaign using key business insights.
+            Estimate the overall success likelihood of a marketing campaign using key business insights.
         </p>
     </div>
     <hr style="border:1px solid #eee;">
@@ -126,13 +127,17 @@ X_input = pd.DataFrame([{
 }])
 
 # ---------- Prediction ----------
-if st.button("🎯 Predict Response Probability"):
+if st.button("🎯 Predict Campaign Success"):
     probability = model.predict_proba(X_input)[:, 1][0]
+    yes_percentage = probability * 100
+    result = "YES ✅" if probability >= 0.5 else "NO ❌"
+
     st.markdown(
         f"""
         <div style="text-align:center; margin-top:30px;">
-            <h2 style="color:#023047;">Predicted Campaign Response Probability:</h2>
-            <h1 style="color:#06d6a0; font-size:50px;">{probability*100:.2f}%</h1>
+            <h2 style="color:#023047;">Predicted Campaign Success:</h2>
+            <h1 style="color:#06d6a0; font-size:50px;">{result}</h1>
+            <h3 style="color:#333;">Yes Percentage: {yes_percentage:.2f}%</h3>
         </div>
         """,
         unsafe_allow_html=True
